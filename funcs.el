@@ -1,0 +1,18 @@
+(defun mathematica-ob-process-export-html-block ()
+  (interactive)
+  (let* ((element (org-element-context))
+         (beg (org-element-property :begin element))
+         (end (org-element-property :end element))
+         (value (org-element-property :value element)))
+    (with-temp-buffer
+      (insert value)
+      (shr-render-buffer (current-buffer)))
+    (let ((html-contents (with-current-buffer "*html*"
+                           (unless (text-properties-at (point))
+                             (let ((contents (buffer-string)))
+                               (kill-buffer)
+                               contents)))))
+      (when (print html-contents)
+        (kill-region beg end)
+        (goto-char beg)
+        (insert "#+RESULTS\n: " html-contents "\n")))))
